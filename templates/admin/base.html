@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} — Mercado Asturias</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #222; }
+
+        nav {
+            background: #1a1a2e;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        nav .brand { color: white; font-weight: 700; font-size: 1.05rem; margin-right: auto; text-decoration: none; }
+        nav a { color: #a8d8ea; text-decoration: none; font-size: .9rem; }
+        nav a:hover, nav a.active { color: white; }
+
+        main { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+        h2 { font-size: 1.1rem; margin-bottom: 1rem; }
+
+        /* Tarjetas resumen */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            text-align: center;
+        }
+        .card .num { font-size: 2.5rem; font-weight: 700; color: #1a1a2e; }
+        .card .label { color: #666; font-size: .85rem; margin-top: .3rem; }
+
+        /* Tabla */
+        .table-wrap { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.08); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: #1a1a2e;
+            color: white;
+            padding: .75rem 1rem;
+            text-align: left;
+            font-size: .85rem;
+            font-weight: 500;
+        }
+        td { padding: .7rem 1rem; border-bottom: 1px solid #eee; font-size: .9rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+        td a { color: #1a1a2e; text-decoration: none; }
+        td a:hover { text-decoration: underline; }
+
+        /* Formularios */
+        form {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 620px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+        }
+        label { display: flex; flex-direction: column; gap: .35rem; font-size: .9rem; font-weight: 500; }
+        label small { color: #888; font-weight: normal; font-size: .8rem; }
+        input[type=text], input[type=date], input[type=url], input[type=number],
+        select, textarea {
+            padding: .6rem .8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: .9rem;
+            font-family: inherit;
+            width: 100%;
+        }
+        input:focus, select:focus, textarea:focus { outline: 2px solid #1a1a2e; border-color: transparent; }
+        input[type=checkbox] { width: auto; }
+        select[multiple] { height: 130px; }
+
+        /* Botones */
+        .btn {
+            display: inline-block;
+            padding: .55rem 1.1rem;
+            background: #1a1a2e;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: .9rem;
+            border: none;
+            cursor: pointer;
+            transition: background .15s;
+        }
+        .btn:hover { background: #16213e; }
+        .btn.green { background: #2d6a4f; }
+        .btn.green:hover { background: #245a42; }
+        .btn.red { background: #9b2226; }
+        .btn.red:hover { background: #7d1d21; }
+        .btn.ghost {
+            background: transparent;
+            color: #1a1a2e;
+            border: 1px solid #ccc;
+        }
+        .btn.ghost:hover { background: #f0f0f0; }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: .2rem .6rem;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 600;
+        }
+        .badge.activo { background: #d1fae5; color: #065f46; }
+        .badge.inactivo { background: #fee2e2; color: #991b1b; }
+
+        /* Toolbar encima de tabla */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        /* Mensajes flash */
+        .flash { padding: .8rem 1.2rem; border-radius: 6px; margin-bottom: 1rem; font-size: .9rem; }
+        .flash.ok { background: #d1fae5; color: #065f46; }
+        .flash.err { background: #fee2e2; color: #991b1b; }
+
+        /* Grid de acciones en el dashboard */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Grid 2 columnas para formularios en tablet+ */
+        .form-grid {
+            display: contents;
+        }
+        .form-grid > * {
+            display: contents;
+        }
+
+        /* Formulario compacto para forms grandes */
+        .form-compact {
+            max-width: 860px;
+            padding: 1.25rem;
+            gap: 0.5rem;
+        }
+
+        /* Grid 2 columnas para listas tipo municipios */
+        .list-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.4rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            padding: 0.75rem;
+        }
+        @media (min-width: 640px) {
+            .list-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.4rem 1rem;
+            }
+        }
+        @media (min-width: 1024px) {
+            .list-grid { grid-template-columns: 1fr 1fr 1fr; }
+        }
+        .list-grid-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            border: 1px solid #eee;
+            background: #fafafa;
+        }
+        .list-grid-item:hover { background: #f0f4ff; border-color: #c7d2fe; }
+        .list-grid-item .item-name { font-weight: 600; }
+        .list-grid-item code { font-size: 0.78rem; color: #666; }
+
+        /* Tablas compactas */
+        .table-compact th,
+        .table-compact td {
+            padding: 0.45rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        /* Campos en 2 columnas dentro de form */
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+        @media (min-width: 640px) {
+            .field-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem 1.25rem;
+            }
+        }
+
+        nav .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+        }
+
+        /* Hamburguesa: visible en móvil y tablet */
+        #nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: 0.25rem 0.4rem;
+            margin-left: auto;
+        }
+        @media (max-width: 1023px) {
+            #nav-toggle { display: block; }
+            nav .nav-links { display: none; }
+            nav .nav-logout { display: none; }
+        }
+
+        /* Overlay oscuro detrás del drawer */
+        #nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 99;
+        }
+        #nav-overlay.open { display: block; }
+
+        /* Drawer lateral (izquierda) */
+        #nav-drawer {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            width: 240px;
+            background: #1a1a2e;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            gap: 0.5rem;
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+        }
+        #nav-drawer.open { transform: translateX(0); }
+        #nav-drawer .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        #nav-drawer .drawer-brand {
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+        #nav-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0.2rem 0.4rem;
+        }
+        #nav-drawer a {
+            color: #a8d8ea;
+            text-decoration: none;
+            font-size: 0.95rem;
+            padding: 0.5rem 0.6rem;
+            border-radius: 6px;
+        }
+        #nav-drawer a:hover, #nav-drawer a.active { color: white; background: rgba(255,255,255,0.1); }
+        #nav-drawer a.logout { color: #f87171; margin-top: auto; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <a class="brand" href="{{ prefix }}/admin/">🛒 Mercado Asturias</a>
+        <div class="nav-links">
+            <a href="{{ prefix }}/admin/" {% if active == 'inicio' %}class="active"{% endif %}>Inicio</a>
+            <a href="{{ prefix }}/admin/municipios" {% if active == 'municipios' %}class="active"{% endif %}>Municipios</a>
+            <a href="{{ prefix }}/admin/categorias" {% if active == 'categorias' %}class="active"{% endif %}>Categorías</a>
+            <a href="{{ prefix }}/admin/productos" {% if active == 'productos' %}class="active"{% endif %}>Productos</a>
+            <a href="{{ prefix }}/admin/comercios" {% if active == 'comercios' %}class="active"{% endif %}>Comercios</a>
+            <a href="{{ prefix }}/v1/docs" target="_blank">API Docs ↗</a>
+        </div>
+        <a href="{{ prefix }}/admin/logout" class="nav-logout" style="color:#f87171;font-size:.9rem">Cerrar sesión</a>
+        <button id="nav-toggle" aria-label="Abrir menú">&#9776;</button>
+    </nav>
+    <div id="nav-overlay"></div>
+    <div id="nav-drawer">
+        <div class="drawer-header">
+            <a class="drawer-brand" href="{{ prefix }}/admin/">🛒 Mercado Asturias</a>
+            <button id="nav-close" aria-label="Cerrar menú">&#x2715;</button>
+        </div>
+        <a href="{{ prefix }}/admin/" {% if active == 'inicio' %}class="active"{% endif %}>Inicio</a>
+        <a href="{{ prefix }}/admin/municipios" {% if active == 'municipios' %}class="active"{% endif %}>Municipios</a>
+        <a href="{{ prefix }}/admin/categorias" {% if active == 'categorias' %}class="active"{% endif %}>Categorías</a>
+        <a href="{{ prefix }}/admin/productos" {% if active == 'productos' %}class="active"{% endif %}>Productos</a>
+        <a href="{{ prefix }}/admin/comercios" {% if active == 'comercios' %}class="active"{% endif %}>Comercios</a>
+        <a href="{{ prefix }}/v1/docs" target="_blank">API Docs ↗</a>
+        <a href="{{ prefix }}/admin/logout" class="logout">Cerrar sesión</a>
+    </div>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <script>
+    const toggle = document.getElementById('nav-toggle');
+    const drawer = document.getElementById('nav-drawer');
+    const overlay = document.getElementById('nav-overlay');
+    const close  = document.getElementById('nav-close');
+    function openDrawer()  { drawer.classList.add('open'); overlay.classList.add('open'); document.body.style.overflow='hidden'; }
+    function closeDrawer() { drawer.classList.remove('open'); overlay.classList.remove('open'); document.body.style.overflow=''; }
+    toggle.addEventListener('click', openDrawer);
+    close.addEventListener('click', closeDrawer);
+    overlay.addEventListener('click', closeDrawer);
+    </script>
+</body>
+</html>

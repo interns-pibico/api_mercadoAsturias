@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+{% block title %}Municipios{% endblock %}
+
+{% block content %}
+<h1>Municipios ({{ municipios|length }})</h1>
+
+<div class="list-grid">
+    {% for m in municipios %}
+    <div class="list-grid-item">
+        <div>
+            <span class="item-name">{{ m.nombre }}</span>
+            <br>
+            <code>{{ m.slug }}</code>
+        </div>
+        {% set activos = m.comercios|selectattr('activo')|list|length %}
+        {% if activos > 0 %}
+        <span class="badge activo">{{ activos }} comercio{{ 's' if activos > 1 }}</span>
+        {% else %}
+        <span class="badge inactivo">0</span>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

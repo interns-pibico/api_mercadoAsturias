@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% block title %}Nueva categoría{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <h1>Nueva categoría</h1>
+    <a href="{{ prefix }}/admin/categorias" class="btn ghost">← Volver</a>
+</div>
+
+<form method="post" class="form-compact" action="{{ prefix }}/admin/categorias/nueva">
+
+    <!-- Nombre | Icono -->
+    <div class="field-row" style="margin-bottom:0.75rem">
+        <label>
+            Nombre *
+            <input type="text" name="nombre" required>
+        </label>
+        <label>
+            Icono (emoji)
+            <input type="text" name="icono" maxlength="5" placeholder="🧀">
+        </label>
+    </div>
+
+    <!-- Descripción (ancho completo) -->
+    <label style="margin-bottom:0.75rem">
+        Descripción
+        <textarea name="descripcion" rows="3"></textarea>
+    </label>
+
+    <div style="display:flex;gap:1rem">
+        <button type="submit" class="btn green">Crear categoría</button>
+        <a href="{{ prefix }}/admin/categorias" class="btn ghost">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

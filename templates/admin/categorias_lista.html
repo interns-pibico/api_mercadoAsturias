@@ -1,0 +1,34 @@
+{% extends "admin/base.html" %}
+{% block title %}Categorías{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <h1>Categorías ({{ categorias|length }})</h1>
+    <a href="{{ prefix }}/admin/categorias/nueva" class="btn">+ Nueva categoría</a>
+</div>
+
+<div class="table-wrap">
+    <table class="table-compact">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Slug</th>
+                <th>Productos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in categorias %}
+            <tr>
+                <td>{{ c.icono or '' }} {{ c.nombre }}</td>
+                <td><code>{{ c.slug }}</code></td>
+                <td>{{ c.productos|length }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" style="text-align:center;color:#888;padding:2rem">Sin categorías aún.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

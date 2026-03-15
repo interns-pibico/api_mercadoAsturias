@@ -1,0 +1,186 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Editar' if comercio else 'Nuevo' }} comercio{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ prefix }}/static/leaflet.css">
+<style>
+  #map { height: 240px; border-radius: 6px; margin-top: 0.5rem; display: none; }
+  #geocode-btn { padding: .6rem 1rem; background: #1a1a2e; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: .9rem; white-space: nowrap; }
+  #geocode-btn:hover { background: #16213e; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <h1>{{ 'Editar comercio' if comercio else 'Nuevo comercio' }}</h1>
+    <a href="{{ prefix }}/admin/comercios" class="btn ghost">← Volver</a>
+</div>
+
+<form method="post" class="form-compact"
+      action="{{ (prefix + '/admin/comercios/' + comercio.id|string + '/editar') if comercio else (prefix + '/admin/comercios/nuevo') }}">
+
+    <!-- Fila 1: Nombre | Municipio -->
+    <div class="field-row">
+        <label>
+            Nombre *
+            <input type="text" name="nombre" required value="{{ comercio.nombre if comercio else '' }}">
+        </label>
+        <label>
+            Municipio *
+            <select name="municipio_id" required>
+                {% for m in municipios %}
+                <option value="{{ m.id }}"
+                    {% if comercio and comercio.municipio_id == m.id %}selected{% endif %}>
+                    {{ m.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    <!-- Fila 2: Descripción (ancho completo) -->
+    <label>
+        Descripción
+        <textarea name="descripcion" rows="2">{{ comercio.descripcion if comercio else '' }}</textarea>
+    </label>
+
+    <!-- Fila 3: Dirección (ancho completo) -->
+    <label>
+        Dirección
+        <div style="display:flex;gap:0.5rem">
+            <input type="text" name="direccion" id="direccion" value="{{ comercio.direccion if comercio else '' }}">
+            <button type="button" id="geocode-btn">Buscar en mapa</button>
+        </div>
+    </label>
+
+    <!-- Fila 4: Mapa (ancho completo) -->
+    <div id="map"></div>
+
+    <!-- Fila 5: Latitud | Longitud -->
+    <div class="field-row">
+        <label>
+            Latitud
+            <input type="number" name="lat" id="lat" step="any" value="{{ comercio.lat if comercio else '' }}" readonly>
+        </label>
+        <label>
+            Longitud
+            <input type="number" name="lon" id="lon" step="any" value="{{ comercio.lon if comercio else '' }}" readonly>
+        </label>
+    </div>
+
+    <!-- Fila 6: Teléfono | Web -->
+    <div class="field-row">
+        <label>
+            Teléfono
+            <input type="text" name="telefono" value="{{ comercio.telefono if comercio else '' }}">
+        </label>
+        <label>
+            Web
+            <input type="url" name="web" value="{{ comercio.web if comercio else '' }}" placeholder="https://...">
+        </label>
+    </div>
+
+    <!-- Fila 7: Horario (ancho completo) -->
+    <label>
+        Horario
+        <textarea name="horario" rows="2" placeholder="Ej: Lun–Sáb 10:00–20:00">{{ comercio.horario if comercio else '' }}</textarea>
+    </label>
+
+    <!-- Fila 8: Suscripción | Activo -->
+    <div class="field-row" style="margin-bottom:0.75rem;align-items:end">
+        <label>
+            Suscripción activa hasta
+            <input type="date" name="suscripcion_hasta"
+                   value="{{ comercio.suscripcion_hasta.strftime('%Y-%m-%d') if comercio and comercio.suscripcion_hasta else '' }}">
+        </label>
+        <label style="flex-direction:row;align-items:center;gap:.6rem;padding-bottom:0.5rem">
+            <input type="checkbox" name="activo" value="1"
+                   {% if comercio and comercio.activo %}checked{% endif %}>
+            Comercio activo (visible en la API)
+        </label>
+    </div>
+
+    <!-- Fila 9: Productos (ancho completo) -->
+    <fieldset style="border:1px solid #e2e8f0;border-radius:6px;padding:0.75rem">
+        <legend style="font-weight:600;padding:0 .5rem">Productos que vende</legend>
+        {% for cat_nombre, prods in productos | groupby('categoria.nombre') %}
+        <details style="margin-bottom:.4rem;border:1px solid #e2e8f0;border-radius:4px">
+            <summary style="padding:.4rem .65rem;cursor:pointer;font-weight:600;color:#1a1a2e;list-style:none;display:flex;align-items:center;gap:.4rem;font-size:.875rem">
+                <span style="font-size:.8rem">▶</span> {{ cat_nombre }}
+                {% set selected_count = prods | selectattr('id', 'in', comercio.productos | map(attribute='id') | list if comercio else []) | list | length %}
+                {% if selected_count > 0 %}
+                <span style="font-size:.75rem;color:#666;font-weight:normal">({{ selected_count }} seleccionado{{ 's' if selected_count > 1 }})</span>
+                {% endif %}
+            </summary>
+            <div style="padding:.4rem .65rem .75rem;display:flex;flex-wrap:wrap;gap:.4rem .8rem;border-top:1px solid #e2e8f0">
+                {% for p in prods %}
+                <label style="display:flex;align-items:center;gap:.3rem;font-weight:normal;cursor:pointer;font-size:.875rem">
+                    <input type="checkbox" name="producto_ids" value="{{ p.id }}"
+                        {% if comercio and p in comercio.productos %}checked{% endif %}>
+                    {{ p.nombre }}
+                </label>
+                {% endfor %}
+            </div>
+        </details>
+        {% endfor %}
+    </fieldset>
+
+    <!-- Fila 10: Botones -->
+    <div style="display:flex;gap:1rem">
+        <button type="submit" class="btn green">
+            {{ 'Guardar cambios' if comercio else 'Crear comercio' }}
+        </button>
+        <a href="{{ prefix }}/admin/comercios" class="btn ghost">Cancelar</a>
+    </div>
+</form>
+
+<script src="{{ prefix }}/static/leaflet.js"></script>
+<script>
+  L.Icon.Default.imagePath = '{{ prefix }}/static/images/';
+
+  let map = null;
+  let marker = null;
+
+  document.getElementById('geocode-btn').addEventListener('click', async () => {
+    const dir = document.getElementById('direccion').value.trim();
+    if (!dir) return;
+
+    const url = 'https://nominatim.openstreetmap.org/search?' +
+      'q=' + encodeURIComponent(dir) +
+      '&countrycodes=es&viewbox=-7.5,42.8,-4.4,43.7&bounded=1&format=json&limit=1';
+
+    const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+    const data = await res.json();
+
+    if (!data.length) { alert('Dirección no encontrada en Asturias'); return; }
+
+    setMarker(parseFloat(data[0].lat), parseFloat(data[0].lon));
+  });
+
+  function setMarker(lat, lon) {
+    document.getElementById('lat').value = lat.toFixed(7);
+    document.getElementById('lon').value = lon.toFixed(7);
+    document.getElementById('map').style.display = 'block';
+
+    if (!map) {
+      map = L.map('map').setView([lat, lon], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+      marker.on('dragend', e => {
+        const p = e.target.getLatLng();
+        document.getElementById('lat').value = p.lat.toFixed(7);
+        document.getElementById('lon').value = p.lng.toFixed(7);
+      });
+    } else {
+      map.setView([lat, lon], 16);
+      marker.setLatLng([lat, lon]);
+    }
+  }
+
+  const existLat = {{ comercio.lat if comercio and comercio.lat else 'null' }};
+  const existLon = {{ comercio.lon if comercio and comercio.lon else 'null' }};
+  if (existLat && existLon) setMarker(existLat, existLon);
+</script>
+{% endblock %}

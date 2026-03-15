@@ -1,0 +1,45 @@
+{% extends "admin/base.html" %}
+{% block title %}Nuevo producto{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <h1>Nuevo producto</h1>
+    <a href="{{ prefix }}/admin/productos" class="btn ghost">← Volver</a>
+</div>
+
+<form method="post" class="form-compact" action="{{ prefix }}/admin/productos/nuevo">
+
+    <!-- Nombre | Categoría -->
+    <div class="field-row" style="margin-bottom:0.75rem">
+        <label>
+            Nombre *
+            <input type="text" name="nombre" required>
+        </label>
+        <label>
+            Categoría *
+            <select name="categoria_id" required>
+                {% for c in categorias %}
+                <option value="{{ c.id }}">{{ c.icono or '' }} {{ c.nombre }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    <!-- Descripción (ancho completo) -->
+    <label style="margin-bottom:0.75rem">
+        Descripción
+        <textarea name="descripcion" rows="2"></textarea>
+    </label>
+
+    <!-- URL imagen (ancho completo) -->
+    <label style="margin-bottom:0.75rem">
+        URL de imagen
+        <input type="url" name="imagen_url" placeholder="https://...">
+    </label>
+
+    <div style="display:flex;gap:1rem">
+        <button type="submit" class="btn green">Crear producto</button>
+        <a href="{{ prefix }}/admin/productos" class="btn ghost">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "admin/base.html" %}
+{% block title %}Comercios{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <h1>Comercios ({{ comercios|length }})</h1>
+    <a href="{{ prefix }}/admin/comercios/nuevo" class="btn green">+ Nuevo comercio</a>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Municipio</th>
+                <th>Estado</th>
+                <th>Suscripción hasta</th>
+                <th>Productos</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in comercios %}
+            <tr>
+                <td><strong>{{ c.nombre }}</strong></td>
+                <td>{{ c.municipio.nombre if c.municipio else '—' }}</td>
+                <td>
+                    {% if c.activo %}
+                        <span class="badge activo">✅ Activo</span>
+                    {% else %}
+                        <span class="badge inactivo">⏸ Inactivo</span>
+                    {% endif %}
+                </td>
+                <td>{{ c.suscripcion_hasta.strftime('%d/%m/%Y') if c.suscripcion_hasta else '—' }}</td>
+                <td>{{ c.productos|length }}</td>
+                <td>
+                    <a href="{{ prefix }}/admin/comercios/{{ c.id }}/editar">Editar</a>
+                    &nbsp;|&nbsp;
+                    <a href="{{ prefix }}/admin/comercios/{{ c.id }}/toggle">
+                        {{ 'Desactivar' if c.activo else 'Activar' }}
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center;color:#888;padding:2rem">
+                    No hay comercios todavía. <a href="{{ prefix }}/admin/comercios/nuevo">Añade el primero</a>.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

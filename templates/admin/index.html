@@ -1,0 +1,37 @@
+{% extends "admin/base.html" %}
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<h1>Panel de administración</h1>
+
+<div class="cards">
+    <div class="card">
+        <div class="num">{{ stats.municipios }}</div>
+        <div class="label">Municipios</div>
+    </div>
+    <div class="card">
+        <div class="num">{{ stats.categorias }}</div>
+        <div class="label">Categorías</div>
+    </div>
+    <div class="card">
+        <div class="num">{{ stats.productos }}</div>
+        <div class="label">Productos</div>
+    </div>
+    <div class="card">
+        <div class="num">{{ stats.comercios_activos }}</div>
+        <div class="label">Comercios activos</div>
+    </div>
+    <div class="card">
+        <div class="num">{{ stats.comercios_total }}</div>
+        <div class="label">Comercios totales</div>
+    </div>
+</div>
+
+<h2>Acciones rápidas</h2>
+<div class="action-grid">
+    <a href="{{ prefix }}/admin/comercios/nuevo" class="btn green">+ Nuevo comercio</a>
+    <a href="{{ prefix }}/admin/comercios" class="btn">Ver todos los comercios</a>
+    <a href="{{ prefix }}/admin/categorias/nueva" class="btn">+ Nueva categoría</a>
+    <a href="{{ prefix }}/admin/productos/nuevo" class="btn">+ Nuevo producto</a>
+</div>
+{% endblock %}
