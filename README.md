@@ -56,7 +56,7 @@ cp .env.example .env
 
 alembic upgrade head
 
-# Optional: seed initial data (77 municipalities, 5 categories, 15 products)
+# Optional: seed initial data (77 municipalities, 5 categories, 29 products, 16 comercios)
 python scripts/seed.py
 
 uvicorn app.main:app --reload
