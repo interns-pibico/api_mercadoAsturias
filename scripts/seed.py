@@ -1,13 +1,15 @@
 """
-Script de seed: carga los 78 concejos de Asturias y datos de ejemplo.
+Script de seed: carga los 77 concejos de Asturias y los datos reales de producción.
 Uso: python scripts/seed.py
 """
 import sys
 import os
+import secrets
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.core.database import SessionLocal, engine, Base
-from app.models.models import Municipio, Categoria, Producto, Comercio, comercio_productos
+from app.models.models import Municipio, Categoria, Producto, Comercio
 from slugify import slugify
 
 Base.metadata.create_all(bind=engine)
@@ -87,7 +89,6 @@ CONCEJOS = [
     ("Belmonte de Miranda", 43.2833, -6.25),
     ("Grado", 43.3833, -6.0667),
     ("Candamo", 43.4333, -6.05),
-    ("Pravia", 43.4972, -6.1056),
     ("Muñás de Arriba", 43.4333, -6.2),
     ("Yernes y Tameza", 43.2333, -6.05),
     ("Miranda", 43.45, -6.2167),
@@ -101,27 +102,206 @@ CATEGORIAS = [
     ("Huerta y Campo", "huerta-campo", "🌿", "Frutas, verduras y productos de la tierra"),
 ]
 
+# (nombre, slug, categoria_slug, descripcion)
 PRODUCTOS = [
     # Gastro
-    ("Queso Afuega'l Pitu", "gastro", "Queso tradicional asturiano de pasta blanda"),
-    ("Queso Cabrales", "gastro", "Queso azul con denominación de origen protegida"),
-    ("Chorizo asturiano", "gastro", "Embutido ahumado tradicional"),
-    ("Morcilla asturiana", "gastro", "Morcilla tradicional con arroz y especias"),
-    ("Conservas de bonito", "gastro", "Bonito del norte en aceite de oliva"),
+    ("Queso Afuega'l Pitu", "queso-afuega-l-pitu", "gastro", "Queso tradicional asturiano de pasta blanda"),
+    ("Queso Cabrales", "queso-cabrales", "gastro", "Queso azul con denominación de origen protegida"),
+    ("Chorizo asturiano", "chorizo-asturiano", "gastro", "Embutido ahumado tradicional"),
+    ("Morcilla asturiana", "morcilla-asturiana", "gastro", "Morcilla tradicional con arroz y especias"),
+    ("Conservas de bonito", "conservas-de-bonito", "gastro", "Bonito del norte en aceite de oliva"),
+    ("Queso Vidiago", "queso-vidiago", "gastro", "Queso de leche vacuna elaborado en la localidad Llanisca de Vidiago."),
+    ("Queso tres leches de Pría", "queso-tres-leches-de-pria", "gastro", "Queso elaborado con leche de vaca, cabra y oveja. Producido en la localidad de Pría (Llanes)"),
+    ("Miel Abeja", "miel-abeja", "gastro", None),
+    ("Anchoas", "anchoas", "gastro", None),
+    ("Queso Casín", "queso-casin", "gastro", "Queso elaborado en el concejo de Caso elaborado con leche entera y cruda de vaca."),
+    ("Queso la Peral", "queso-la-peral", "gastro", None),
     # Dulce
-    ("Carbayones", "dulce", "Pastel típico de Oviedo con almendra y yema"),
-    ("Casadielles", "dulce", "Empanadilla frita rellena de nuez y anís"),
-    ("Arroz con leche", "dulce", "Postre tradicional asturiano gratinado"),
-    # Sidra
-    ("Sidra natural", "sidra-bebidas", "Sidra asturiana sin gas, de manzana autóctona"),
-    ("Sidra espumosa", "sidra-bebidas", "Sidra achampanada para ocasiones especiales"),
+    ("Carbayones", "carbayones", "dulce", "Pastel típico de Oviedo con almendra y yema"),
+    ("Casadielles", "casadielles", "dulce", "Empanadilla frita rellena de nuez y anís"),
+    ("Arroz con leche", "arroz-con-leche", "dulce", "Postre tradicional asturiano gratinado"),
+    ("Moscovitas", "moscovitas", "dulce", "Dulce artesano a base de almendras, nata , harina y chocolate"),
+    ("Carajitos  de avellana", "carajitos-de-avellana", "dulce", "Pastel típico asturiano elaborado a base de avellanas."),
+    ("Marañueles", "maranueles", "dulce", None),
+    # Sidra y Bebidas
+    ("Sidra natural", "sidra-natural", "sidra-bebidas", "Sidra asturiana sin gas, de manzana autóctona"),
+    ("Sidra espumosa", "sidra-espumosa", "sidra-bebidas", "Sidra achampanada para ocasiones especiales"),
+    ("Cerveza Artesana", "cerveza-artesana", "sidra-bebidas", None),
+    ("Aguardiente de Sidra", "aguardiente-de-sidra", "sidra-bebidas", "Producto destilado hecho a partir de la mejor selección de sidra asturiana, envejecido en barricas de roble."),
+    ("Licor de avellanas", "licor-de-avellanas", "sidra-bebidas", None),
     # Artesanía
-    ("Cerámica asturiana", "artesania", "Piezas de barro pintadas a mano"),
-    ("Madera tallada", "artesania", "Figuras y utensilios en madera de castaño"),
-    # Huerta
-    ("Manzana asturiana", "huerta-campo", "Variedades autóctonas para sidra y mesa"),
-    ("Faba asturiana", "huerta-campo", "Legumbre con denominación de origen protegida"),
-    ("Escanda", "huerta-campo", "Cereal ancestral asturiano, sin gluten"),
+    ("Cerámica asturiana", "ceramica-asturiana", "artesania", "Piezas de barro pintadas a mano"),
+    ("Madera tallada", "madera-tallada", "artesania", "Figuras y utensilios en madera de castaño"),
+    ("cerámica", "ceramica", "artesania", None),
+    # Huerta y Campo
+    ("Manzana asturiana", "manzana-asturiana", "huerta-campo", "Variedades autóctonas para sidra y mesa"),
+    ("Faba asturiana", "faba-asturiana", "huerta-campo", "Legumbre con denominación de origen protegida"),
+    ("Escanda", "escanda", "huerta-campo", "Cereal ancestral asturiano, sin gluten"),
+    ("Fabes verdinas", "fabes-verdinas", "huerta-campo", "Variedad gourmet de alubia pequeña, color verde esmeralda, considerada \"manteca\" por su textura dina al paladar."),
+]
+
+# (nombre, slug, municipio_slug, direccion, lat, lon, telefono, web, horario, activo, productos[])
+COMERCIOS = [
+    (
+        "La Tienda Asturiana",
+        "la-tienda-asturiana-gijon",
+        "gijon",
+        "Calle Corrida, 12, Gijón", 43.5453, -5.6615,
+        "985 000 000", "https://ejemplo.com",
+        "Lun-Sáb 10:00-20:00",
+        False,
+        ["sidra-natural"],
+    ),
+    (
+        "Sr Lúpulo Despacho de Cervezas",
+        "sr-lupulo-despacho-de-cervezas",
+        "gijon",
+        "Calle San Antonio, 5", 43.5453, -5.6615,
+        None, None,
+        "Lunes a jueves de 12:00 a 14:30h de 17:00 a 22:30h \nViernes y sábados de 12:00 a 14:30h de 17:00 a 23:30h",
+        True,
+        ["cerveza-artesana"],
+    ),
+    (
+        "Al Peso Bar",
+        "al-peso-bar",
+        "gijon",
+        "Calle Sta. Doradía, 19", 43.5453, -5.6615,
+        None, None,
+        "Lunes a sábado de 8:00 a 1:00h \nDomingos de 12:00 a 1:00h",
+        True,
+        ["queso-cabrales"],
+    ),
+    (
+        "La Marina",
+        "la-marina",
+        "gijon",
+        "Calle Martínez Marina, 6", 43.5453, -5.6615,
+        "984 39 96 00", None,
+        "Lunes - Viernes: 9:00-14:00 / 17:45-20:00\nSábado: 9:30 - 14:30",
+        True,
+        ["queso-afuega-l-pitu", "queso-cabrales", "faba-asturiana"],
+    ),
+    (
+        "Somiedo Productos Asturianos",
+        "somiedo-productos-asturianos",
+        "gijon",
+        "Calle San Bernardo, 4", 43.5453, -5.6615,
+        "684 60 02 38", None,
+        "Lunes - Viernes: 10:30 - 14:30 / 17:00 - 20:30\nSábado: 10:30 - 14:30\nDomingo: 10:30 - 15:00",
+        True,
+        ["queso-afuega-l-pitu", "queso-cabrales", "chorizo-asturiano", "sidra-natural", "faba-asturiana", "cerveza-artesana"],
+    ),
+    (
+        "La Choricería",
+        "la-chorícería",
+        "gijon",
+        "Calle Juan Alvargonzález, 42", 43.5453, -5.6615,
+        None, None,
+        "Lunes - Sábado: 10:00 - 14:00",
+        True,
+        ["queso-afuega-l-pitu", "queso-cabrales", "chorizo-asturiano", "morcilla-asturiana", "sidra-natural", "faba-asturiana", "queso-tres-leches-de-pria", "queso-la-peral"],
+    ),
+    (
+        "La Esquina de Gijón",
+        "la-esquina-de-gijon",
+        "gijon",
+        "Calle Magnus Blikstad, 28", 43.5453, -5.6615,
+        None, None,
+        "Lunes - Viernes: 9:30 - 14:00 / 18:00 - 20:00\nSábado: 9:30 - 14:00",
+        True,
+        ["queso-afuega-l-pitu", "queso-cabrales", "chorizo-asturiano", "morcilla-asturiana", "sidra-natural", "faba-asturiana", "queso-vidiago", "queso-tres-leches-de-pria", "queso-casin", "queso-la-peral"],
+    ),
+    (
+        "Casa Marila",
+        "casa-marila",
+        "gijon",
+        "Calle Rio Muni, 4", 43.5453, -5.6615,
+        None, None,
+        None,
+        True,
+        ["queso-cabrales", "chorizo-asturiano", "morcilla-asturiana", "casadielles", "faba-asturiana"],
+    ),
+    (
+        "La Quesería",
+        "la-queseria",
+        "gijon",
+        "Calle Aguado, 32", 43.5453, -5.6615,
+        "985 37 28 40", None,
+        None,
+        True,
+        ["queso-afuega-l-pitu", "queso-cabrales", "cerveza-artesana", "queso-vidiago", "queso-tres-leches-de-pria", "queso-casin", "queso-la-peral"],
+    ),
+    (
+        "Comestibles la Gijonesa",
+        "comestibles-la-gijonesa",
+        "gijon",
+        "Calle Covadonga, 24, Gijón", 43.5453, -5.6615,
+        None, None,
+        "Lunes - Sábado: 11:00 - 20:30\nDomingo: 11:30 - 15:00",
+        True,
+        ["queso-afuega-l-pitu", "queso-cabrales", "conservas-de-bonito", "casadielles", "sidra-natural", "cerveza-artesana", "queso-tres-leches-de-pria", "queso-casin", "queso-la-peral", "maranueles"],
+    ),
+    (
+        "Quesería Cabrales 106",
+        "queseria-cabrales-106",
+        "gijon",
+        "Calle Cabrales, 106, Gijón", 43.5453, -5.6615,
+        None, None,
+        "Lunes - Viernes: 10:00 - 14:00 / 17:30 - 20:30\nSábado: 10:30 - 14:30",
+        True,
+        ["queso-afuega-l-pitu", "queso-cabrales", "chorizo-asturiano", "morcilla-asturiana", "faba-asturiana", "queso-vidiago", "queso-tres-leches-de-pria", "queso-casin", "queso-la-peral"],
+    ),
+    (
+        "Llagar Castañón",
+        "llagar-castanon",
+        "villaviciosa",
+        "Carretera de San Miguel, 90-103, Quintueles(Villaviciosa)", 43.4833, -5.4333,
+        None, "https://sidracastanon.com/",
+        "Según horario visitas guiadas.",
+        True,
+        ["sidra-natural", "madera-tallada", "ceramica"],
+    ),
+    (
+        "Llagar Herminio",
+        "llagar-herminio",
+        "siero",
+        "Camino Real, 11, Colloto", 43.3893, -5.6598,
+        None, None,
+        None,
+        True,
+        ["sidra-natural"],
+    ),
+    (
+        "Sidra Cortina",
+        "sidra-cortina",
+        "villaviciosa",
+        "San Juan, 44, Amandi, Villaviciosa", 43.4833, -5.4333,
+        None, None,
+        None,
+        True,
+        ["sidra-natural"],
+    ),
+    (
+        "Sidra Menendez",
+        "sidra-menendez",
+        "gijon",
+        "Carretera AS-337, Fano, Gijón", 43.5453, -5.6615,
+        "985 137 196", "https://www.sidramenendez.com/",
+        "Lunes - Viernes: 9:00 - 14:00 / 16:00 - 19:30",
+        True,
+        ["sidra-natural"],
+    ),
+    (
+        "Sidra trabanco",
+        "sidra-trabanco",
+        "gijon",
+        "Carretera de Lavandera, 3255, Gijón", 43.5453, -5.6615,
+        "985 136 462", "https://www.sidratrabanco.com/",
+        "Lunes - Miércoles: 12:00 - 18:00\nJueves - Sábado: 12:00 - 1:00\nDomingo: 12:00 - 18:00",
+        True,
+        ["sidra-natural"],
+    ),
 ]
 
 
@@ -147,44 +327,50 @@ def seed():
                 db.add(Categoria(nombre=nombre, slug=slug, icono=icono, descripcion=desc))
             db.commit()
             print(f"✅ {len(CATEGORIAS)} categorías insertadas")
+        else:
+            print("⏭ Categorías ya existen")
 
         # Productos
         if db.query(Producto).count() == 0:
             cats = {c.slug: c for c in db.query(Categoria).all()}
-            for nombre, cat_slug, desc in PRODUCTOS:
+            for nombre, slug, cat_slug, desc in PRODUCTOS:
                 db.add(Producto(
                     nombre=nombre,
-                    slug=slugify(nombre),
+                    slug=slug,
                     descripcion=desc,
                     categoria_id=cats[cat_slug].id,
                 ))
             db.commit()
             print(f"✅ {len(PRODUCTOS)} productos insertados")
+        else:
+            print("⏭ Productos ya existen")
 
-        # Comercio de ejemplo
+        # Comercios
         if db.query(Comercio).count() == 0:
-            gijon = db.query(Municipio).filter(Municipio.slug == "gijon").first()
-            queso = db.query(Producto).filter(Producto.slug == "queso-cabralles").first()
-            sidra = db.query(Producto).filter(Producto.slug == "sidra-natural").first()
-            prods = [p for p in [queso, sidra] if p]
+            municipios = {m.slug: m for m in db.query(Municipio).all()}
+            productos = {p.slug: p for p in db.query(Producto).all()}
 
-            c = Comercio(
-                nombre="La Tienda Asturiana",
-                slug="la-tienda-asturiana-gijon",
-                descripcion="Especialistas en productos típicos de Asturias desde 1985",
-                direccion="Calle Corrida, 12, Gijón",
-                lat=43.5453,
-                lon=-5.6615,
-                telefono="985 000 000",
-                web="https://ejemplo.com",
-                horario="Lun-Sáb 10:00-20:00",
-                municipio_id=gijon.id if gijon else 1,
-                activo=True,
-                productos=prods,
-            )
-            db.add(c)
+            for nombre, slug, mun_slug, dir_, lat, lon, tel, web, horario, activo, prod_slugs in COMERCIOS:
+                prods = [productos[s] for s in prod_slugs if s in productos]
+                c = Comercio(
+                    nombre=nombre,
+                    slug=slug,
+                    direccion=dir_,
+                    lat=lat,
+                    lon=lon,
+                    telefono=tel,
+                    web=web,
+                    horario=horario,
+                    municipio_id=municipios[mun_slug].id,
+                    activo=activo,
+                    api_key=secrets.token_hex(32),
+                    productos=prods,
+                )
+                db.add(c)
             db.commit()
-            print("✅ Comercio de ejemplo insertado")
+            print(f"✅ {len(COMERCIOS)} comercios insertados ({sum(1 for c in COMERCIOS if c[9])} activos)")
+        else:
+            print("⏭ Comercios ya existen")
 
         print("\n🎉 Seed completado")
     finally:
